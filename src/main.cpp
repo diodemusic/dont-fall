@@ -7,7 +7,7 @@
 
 unsigned long timeCurrent = 0;
 unsigned long timeLast = 0;
-const unsigned long TIME_INTERVAL = 100;
+const unsigned long TIME_INTERVAL = 20;
 
 uint8_t readRegister(uint8_t reg)
 {
