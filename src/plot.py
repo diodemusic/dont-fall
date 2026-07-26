@@ -2,7 +2,7 @@
 """Live plot of the MPU6050 CSV stream from the ESP32.
 
 Expects one sample per line:
-    accelX,accelY,accelZ,gyroX,gyroY,gyroZ,accelAngle,gyroAngle
+    accelX,accelY,accelZ,gyroX,gyroY,gyroZ,accelAngle,gyroAngle,fusedAngle
 with accel in g, gyro in deg/s, angles in degrees.
 
 Usage:
@@ -21,7 +21,7 @@ from matplotlib.animation import FuncAnimation
 DEFAULT_PORT = "/dev/cu.usbserial-0001"
 BAUD = 115200
 WINDOW = 300  # samples held on screen
-CHANNELS = 8
+CHANNELS = 9
 
 ACCEL_RANGE = 2.0  # g, matches ACCEL_CONFIG default
 GYRO_RANGE = 250.0  # deg/s, matches GYRO_CONFIG default
@@ -40,8 +40,13 @@ accel_lines = [
 ]
 gyro_lines = [ax_gyro.plot([], [], label=n)[0] for n in ("gyro X", "gyro Y", "gyro Z")]
 angle_lines = [
-    ax_angle.plot([], [], label="accel angle", color="tab:purple", linewidth=1.0)[0],
-    ax_angle.plot([], [], label="gyro angle", color="tab:orange", linewidth=1.4)[0],
+    ax_angle.plot(
+        [], [], label="accel only", color="tab:purple", linewidth=0.8, alpha=0.6
+    )[0],
+    ax_angle.plot(
+        [], [], label="gyro only", color="tab:orange", linewidth=1.0, alpha=0.7
+    )[0],
+    ax_angle.plot([], [], label="fused", color="black", linewidth=1.8)[0],
 ]
 
 ax_accel.set_ylim(-ACCEL_RANGE, ACCEL_RANGE)
@@ -57,7 +62,7 @@ ax_gyro.grid(alpha=0.3)
 ax_angle.set_ylim(-ANGLE_RANGE, ANGLE_RANGE)
 ax_angle.set_ylabel("degrees")
 ax_angle.set_xlabel("samples")
-ax_angle.legend(loc="upper right", ncol=2)
+ax_angle.legend(loc="upper right", ncol=3)
 ax_angle.grid(alpha=0.3)
 
 for ax in (ax_accel, ax_gyro, ax_angle):
