@@ -9,6 +9,7 @@ unsigned long timeCurrent = 0;
 unsigned long timeLast = 0;
 const unsigned long TIME_INTERVAL = 20;
 float gyroAngle = 0.0;
+float gyroBiasY = 0.0;
 
 uint8_t readRegister(uint8_t reg)
 {
@@ -59,6 +60,30 @@ void setup()
   Serial.begin(115200); // start comms
   Wire.begin();
   wakeMpu();
+
+  delay(100);
+  const int SAMPLES = 2000;
+  int32_t gyroSum = 0;
+  uint8_t buf[14];
+
+  Serial.println("Accumulating gyro Y axis, please do not touch the robot");
+
+  int collected = 0;
+  while (collected < SAMPLES)
+  {
+    if (readRegBlock(buf, REG_ACCEL_GYRO_BLOCK_ADDR, REG_ACCEL_GYRO_BLOCK_COUNT))
+    {
+      int16_t rawGyroY = (buf[10] << 8) | buf[11];
+      gyroSum += rawGyroY;
+      collected++;
+    }
+  }
+
+  Serial.println("Finished accumulating gyro Y axis");
+
+  gyroBiasY = gyroSum / (float)SAMPLES;
+
+  timeLast = millis();
 }
 
 void loop()
@@ -90,7 +115,7 @@ void loop()
     int16_t rawGyroY = (accelGyroBuf[10] << 8) | accelGyroBuf[11];
     int16_t rawGyroZ = (accelGyroBuf[12] << 8) | accelGyroBuf[13];
     float gyroX = rawGyroX / 131.0;
-    float gyroY = rawGyroY / 131.0;
+    float gyroY = (rawGyroY - gyroBiasY) / 131.0;
     float gyroZ = rawGyroZ / 131.0;
 
     float accelAngle = degrees(atan2(accelX, accelZ));
