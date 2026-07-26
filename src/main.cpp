@@ -7,9 +7,12 @@
 
 unsigned long timeCurrent = 0;
 unsigned long timeLast = 0;
-const unsigned long TIME_INTERVAL = 20;
 float gyroAngle = 0.0;
 float gyroBiasY = 0.0;
+float angle = 0.0;
+
+const unsigned long TIME_INTERVAL = 20;
+const float ALPHA = 0.98;
 
 uint8_t readRegister(uint8_t reg)
 {
@@ -83,6 +86,12 @@ void setup()
 
   gyroBiasY = gyroSum / (float)SAMPLES;
 
+  readRegBlock(buf, REG_ACCEL_GYRO_BLOCK_ADDR, REG_ACCEL_GYRO_BLOCK_COUNT);
+
+  int16_t rawX = (buf[0] << 8) | buf[1];
+  int16_t rawZ = (buf[4] << 8) | buf[5];
+  angle = degrees(atan2(rawX / 16384.0, rawZ / 16384.0));
+
   timeLast = millis();
 }
 
@@ -115,12 +124,13 @@ void loop()
     int16_t rawGyroY = (accelGyroBuf[10] << 8) | accelGyroBuf[11];
     int16_t rawGyroZ = (accelGyroBuf[12] << 8) | accelGyroBuf[13];
     float gyroX = rawGyroX / 131.0;
-    float gyroY = (rawGyroY - gyroBiasY) / 131.0;
+    float gyroY = -(rawGyroY - gyroBiasY) / 131.0;
     float gyroZ = rawGyroZ / 131.0;
 
     float accelAngle = degrees(atan2(accelX, accelZ));
 
     gyroAngle += gyroY * dt;
+    angle = ALPHA * (angle + gyroY * dt) + (1.0 - ALPHA) * accelAngle;
 
     Serial.print(accelX, 4);
     Serial.print(',');
@@ -136,6 +146,8 @@ void loop()
     Serial.print(',');
     Serial.print(accelAngle, 4);
     Serial.print(',');
-    Serial.println(gyroAngle, 4);
+    Serial.print(gyroAngle, 4);
+    Serial.print(',');
+    Serial.println(angle, 4);
   }
 }
