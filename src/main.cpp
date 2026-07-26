@@ -8,6 +8,7 @@
 unsigned long timeCurrent = 0;
 unsigned long timeLast = 0;
 const unsigned long TIME_INTERVAL = 20;
+float gyroAngle = 0.0;
 
 uint8_t readRegister(uint8_t reg)
 {
@@ -66,7 +67,9 @@ void loop()
 
   if (timeCurrent - timeLast >= TIME_INTERVAL)
   {
+    unsigned long elapsed = timeCurrent - timeLast;
     timeLast = timeCurrent;
+    float dt = elapsed / 1000.0;
 
     uint8_t accelGyroBuf[14];
 
@@ -90,7 +93,9 @@ void loop()
     float gyroY = rawGyroY / 131.0;
     float gyroZ = rawGyroZ / 131.0;
 
-    float angle = degrees(atan2(accelX, accelZ));
+    float accelAngle = degrees(atan2(accelX, accelZ));
+
+    gyroAngle += gyroY * dt;
 
     Serial.print(accelX, 4);
     Serial.print(',');
@@ -104,6 +109,8 @@ void loop()
     Serial.print(',');
     Serial.print(gyroZ, 4);
     Serial.print(',');
-    Serial.println(angle, 4);
+    Serial.print(accelAngle, 4);
+    Serial.print(',');
+    Serial.println(gyroAngle, 4);
   }
 }
