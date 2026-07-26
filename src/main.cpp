@@ -90,6 +90,8 @@ void loop()
     float gyroY = rawGyroY / 131.0;
     float gyroZ = rawGyroZ / 131.0;
 
+    float angle = degrees(atan2(accelX, accelZ));
+
     Serial.print(accelX, 4);
     Serial.print(',');
     Serial.print(accelY, 4);
@@ -100,6 +102,8 @@ void loop()
     Serial.print(',');
     Serial.print(gyroY, 4);
     Serial.print(',');
-    Serial.println(gyroZ, 4);
+    Serial.print(gyroZ, 4);
+    Serial.print(',');
+    Serial.println(angle, 4);
   }
 }
